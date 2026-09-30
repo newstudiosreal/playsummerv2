@@ -1,0 +1,3 @@
+{ "name": "PlaySummer", "short_name": "PlaySummer", "start_url": "./", "display": "standalone",
+  "background_color": "#0B1230", "theme_color": "#0B1230", "lang": "it",
+  "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }] }
