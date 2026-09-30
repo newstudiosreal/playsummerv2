@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import type { Profile, Group, EventType } from './types';
+import type { Profile, Group } from './types';
 
 /**
  * Funzioni dedicate all'amministratore.
