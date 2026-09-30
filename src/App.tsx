@@ -1,30 +1,52 @@
 import { useEffect, type ReactNode } from 'react';
 import { useAuth } from './lib/auth';
 import { go, useRoute } from './lib/router';
+import { useTheme } from './lib/theme';
+import { IconBook, IconMoon, IconSun, IconUser, IconUsers } from './components/icons';
 import { Spinner } from './components/ui';
 import { Auth } from './pages/Auth';
 import { Group } from './pages/Group';
 import { Home } from './pages/Home';
 import { Join } from './pages/Join';
+import { Landing } from './pages/Landing';
 import { Privacy } from './pages/Privacy';
 import { Profile } from './pages/Profile';
+import { Rules } from './pages/Rules';
 
 const PENDING = 'ps_pending_join';
+const NAV = [
+  { to: '/', label: 'Gruppi', Icon: IconUsers },
+  { to: '/regole', label: 'Regole', Icon: IconBook },
+  { to: '/me', label: 'Profilo', Icon: IconUser },
+];
 
-function Shell({ route, children }: { route: string; children: ReactNode }) {
+function Shell({ route, authed, children }: { route: string; authed: boolean; children: ReactNode }) {
   const { profile } = useAuth();
-  const onMe = route === '/me';
+  const { theme, toggle } = useTheme();
+  const active = (to: string) => (to === '/' ? route === '/' || route.startsWith('/g/') || route.startsWith('/join/') : route === to);
+  const items = authed ? NAV : NAV.filter((n) => n.to === '/regole');
   return (
     <>
       <header className="topbar">
-        <a href="#/" className="logo">Play<span>Summer</span></a>
-        <span className="me-chip">{profile?.avatar} {profile?.username}</span>
+        <a href="#/" className="logo" aria-label="PlaySummer, home"><i />PLAYSUMMER</a>
+        <nav className="topnav" aria-label="Principale">
+          {items.map((n) => <a key={n.to} href={`#${n.to}`} className={active(n.to) ? 'active' : ''}>{n.label}</a>)}
+        </nav>
+        <span className="spacer" />
+        <button className="btn btn-ghost iconbtn" onClick={toggle} aria-label={theme === 'dark' ? 'Tema chiaro' : 'Tema scuro'}>
+          {theme === 'dark' ? <IconSun /> : <IconMoon />}
+        </button>
+        {authed
+          ? <a href="#/me" className="avatar" aria-label="Il tuo profilo">{profile?.avatar}</a>
+          : <><a href="#/accedi" className="btn btn-sm hide-xs">Accedi</a><a href="#/registrati" className="btn btn-sm btn-sun">Registrati</a></>}
       </header>
       <main className="page">{children}</main>
-      <nav className="tabbar" aria-label="Navigazione">
-        <a href="#/" className={onMe ? '' : 'on'}><b>🏖️</b>Gruppi</a>
-        <a href="#/me" className={onMe ? 'on' : ''}><b>🙂</b>Profilo</a>
-      </nav>
+      <footer className="foot">Un progetto NeW Studios</footer>
+      {authed && (
+        <nav className="bottomnav" aria-label="Principale mobile">
+          {NAV.map((n) => <a key={n.to} href={`#${n.to}`} className={active(n.to) ? 'active' : ''}><n.Icon />{n.label}</a>)}
+        </nav>
+      )}
     </>
   );
 }
@@ -46,16 +68,17 @@ export function App() {
     } catch { /* storage non disponibile */ }
   }, [session, profile, join]);
 
-  if (route === '/privacy') return <Privacy />;
   if (loading || (session && !profile)) return <Spinner full />;
-  if (!session) return <Auth />;
 
-  return (
-    <Shell route={route}>
-      {join ? <Join code={join[1].toUpperCase()} />
-        : group ? <Group id={group[1]} />
-        : route === '/me' ? <Profile />
-        : <Home />}
-    </Shell>
-  );
+  let page: ReactNode;
+  if (route === '/privacy') page = <Privacy />;
+  else if (route === '/regole') page = <Rules />;
+  else if (!session) {
+    page = route === '/accedi' ? <Auth key="l" mode="login" />
+      : route === '/registrati' || join ? <Auth key="r" mode="register" /> : <Landing />;
+  } else {
+    page = join ? <Join code={join[1].toUpperCase()} /> : group ? <Group id={group[1]} />
+      : route === '/me' ? <Profile /> : <Home />;
+  }
+  return <Shell route={route} authed={!!session}>{page}</Shell>;
 }

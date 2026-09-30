@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import { useAuth } from '../lib/auth';
 import { deleteAccount, updateProfile } from '../lib/db';
-import { Button, Field, useToast } from '../components/ui';
+import { Button, Field, useConfirm, useToast } from '../components/ui';
 
 const AVATARS = ['🏄', '😎', '🦩', '🍉', '🌴', '🐬', '🦀', '🍦', '🎸', '⚡', '🔥', '🌈'];
 
 export function Profile() {
   const { profile, signOut, refreshProfile } = useAuth();
   const toast = useToast();
+  const ask = useConfirm();
   const [avatar, setAvatar] = useState(profile?.avatar ?? '🏄');
   const [bio, setBio] = useState(profile?.bio ?? '');
   const [busy, setBusy] = useState(false);
@@ -16,12 +17,12 @@ export function Profile() {
   const save = async () => {
     setBusy(true);
     try { await updateProfile(profile.id, avatar, bio.trim() || null); await refreshProfile(); toast('Profilo salvato ✅'); }
-    catch (e) { toast((e as Error).message); }
+    catch (e) { toast((e as Error).message, 'error'); }
     setBusy(false);
   };
   const remove = async () => {
-    if (!confirm('Cancellare account, gruppi creati ed eventi? Non si può annullare.')) return;
-    try { await deleteAccount(); await signOut(); } catch (e) { toast((e as Error).message); }
+    if (!(await ask({ title: 'Cancellare il tuo account?', text: 'Spariscono profilo, gruppi creati ed eventi. Non si può annullare.', confirm: 'Cancella tutto', danger: true }))) return;
+    try { await deleteAccount(); await signOut(); } catch (e) { toast((e as Error).message, 'error'); }
   };
 
   return (

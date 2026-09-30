@@ -9,8 +9,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@fontsource-variable/nunito": "^5.1.0",
-    "@fontsource/righteous": "^5.1.0",
+    "@fontsource-variable/dm-sans": "^5.3.0",
+    "@fontsource/bebas-neue": "^5.3.0",
     "@supabase/supabase-js": "^2.45.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"

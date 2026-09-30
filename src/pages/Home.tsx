@@ -1,18 +1,20 @@
 import { useState, type FormEvent } from 'react';
 import { createGroup, fetchMyGroups } from '../lib/db';
+import { useAuth } from '../lib/auth';
 import { go } from '../lib/router';
 import { useAsync } from '../lib/useAsync';
 import { Button, Empty, ErrorBox, Field, Sheet, Spinner, useToast } from '../components/ui';
 
 export function Home() {
+  const { profile } = useAuth();
   const { data, error, loading, reload } = useAsync(fetchMyGroups, []);
   const [sheet, setSheet] = useState<'create' | 'join' | null>(null);
 
   return (
     <>
-      <div className="row between">
-        <h2>I tuoi gruppi</h2>
-      </div>
+      <p className="muted" style={{ margin: 0 }}>Ciao,</p>
+      <h1>{profile?.username} 🌴</h1>
+      <div className="section-title"><h2>I tuoi gruppi</h2></div>
 
       {loading && <Spinner />}
       {error && <ErrorBox message={error} onRetry={reload} />}
@@ -33,7 +35,7 @@ export function Home() {
 
       <div className="actions">
         <Button onClick={() => setSheet('create')}>Crea gruppo</Button>
-        <Button variant="sea" onClick={() => setSheet('join')}>Entra con codice</Button>
+        <Button variant="sea" onClick={() => setSheet('join')}>Ho un codice</Button>
       </div>
 
       {sheet === 'create' && <CreateSheet onClose={() => setSheet(null)} />}

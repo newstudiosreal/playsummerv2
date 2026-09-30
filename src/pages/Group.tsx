@@ -4,7 +4,7 @@ import { useAuth } from '../lib/auth';
 import { go } from '../lib/router';
 import { useAsync } from '../lib/useAsync';
 import type { LeaderRow } from '../lib/types';
-import { Button, Empty, ErrorBox, Sheet, Spinner, useToast } from '../components/ui';
+import { Button, Empty, ErrorBox, Sheet, Spinner, useConfirm, useToast } from '../components/ui';
 
 const MEDAL = ['👑', '🥈', '🥉'];
 const sign = (n: number) => (n > 0 ? `+${n}` : `${n}`);
@@ -12,6 +12,7 @@ const sign = (n: number) => (n > 0 ? `+${n}` : `${n}`);
 export function Group({ id }: { id: string }) {
   const { profile } = useAuth();
   const toast = useToast();
+  const ask = useConfirm();
   const [assign, setAssign] = useState(false);
   const { data, error, loading, reload } = useAsync(async () => {
     const [group, board, feed, pending] = await Promise.all([fetchGroup(id), fetchLeaderboard(id), fetchFeed(id), fetchPending(id)]);
@@ -32,7 +33,7 @@ export function Group({ id }: { id: string }) {
   const isOwner = group.owner_id === profile?.id;
   const inviteLink = `${location.origin}${location.pathname}#/join/${group.code}`;
   const act = async (fn: () => Promise<unknown>, after: () => void) => {
-    try { await fn(); after(); } catch (e) { toast((e as Error).message); }
+    try { await fn(); after(); } catch (e) { toast((e as Error).message, 'error'); }
   };
 
   const copy = async () => {
@@ -96,7 +97,7 @@ export function Group({ id }: { id: string }) {
             <span className={f.pts > 0 ? 'up' : 'down'}>{sign(f.pts)}</span>
             {isOwner && (
               <button className="x" aria-label="Annulla evento"
-                onClick={() => confirm('Annullare questo evento?') && act(() => deleteEvent(f.id), reload)}>✕</button>
+                onClick={async () => { if (await ask({ title: 'Annullare questo evento?', confirm: 'Annulla evento', danger: true })) await act(() => deleteEvent(f.id), reload); }}>✕</button>
             )}
           </li>
         ))}
@@ -104,8 +105,8 @@ export function Group({ id }: { id: string }) {
 
       <div className="actions">
         {isOwner
-          ? <Button variant="danger" onClick={() => confirm(`Eliminare "${group.name}" per tutti?`) && act(() => deleteGroup(group.id), () => go('/'))}>Elimina gruppo</Button>
-          : <Button variant="ghost" onClick={() => profile && confirm(`Uscire da "${group.name}"?`) && act(() => leaveGroup(group.id, profile.id), () => go('/'))}>Esci dal gruppo</Button>}
+          ? <Button variant="danger" onClick={async () => { if (await ask({ title: `Eliminare "${group.name}"?`, text: 'Sparisce per tutti e non si può annullare.', confirm: 'Elimina', danger: true })) await act(() => deleteGroup(group.id), () => go('/')); }}>Elimina gruppo</Button>
+          : <Button variant="ghost" onClick={async () => { if (profile && await ask({ title: `Uscire da "${group.name}"?`, confirm: 'Esci', danger: true })) await act(() => leaveGroup(group.id, profile.id), () => go('/')); }}>Esci dal gruppo</Button>}
       </div>
 
       {assign && profile && (isOwner

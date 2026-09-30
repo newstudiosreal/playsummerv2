@@ -2,7 +2,7 @@ const mail = import.meta.env.VITE_CONTACT_EMAIL as string | undefined;
 
 export function Privacy() {
   return (
-    <main className="page stack">
+    <div className="stack">
       <a className="back" href="#/">← Indietro</a>
       <h1>Privacy</h1>
       <p>PlaySummer è un progetto di NeW Studios, per giocatori dai 14 anni in su.</p>
@@ -15,6 +15,6 @@ export function Privacy() {
       <h2>Cancellazione</h2>
       <p>Da Profilo → "Cancella il mio account" elimini subito tutti i tuoi dati.</p>
       {mail && <p>Domande? Scrivi a <a href={`mailto:${mail}`}>{mail}</a>.</p>}
-    </main>
+    </div>
   );
 }
