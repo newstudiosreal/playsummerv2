@@ -2,7 +2,7 @@ import { useEffect, type ReactNode } from 'react';
 import { useAuth } from './lib/auth';
 import { go, useRoute } from './lib/router';
 import { useTheme } from './lib/theme';
-import { IconBook, IconMoon, IconSun, IconUser, IconUsers } from './components/icons';
+import { IconBook, IconMoon, IconSun, IconUser, IconUsers, IconShield } from './components/icons';
 import { Spinner } from './components/ui';
 import { Auth } from './pages/Auth';
 import { Group } from './pages/Group';
@@ -12,6 +12,7 @@ import { Landing } from './pages/Landing';
 import { Privacy } from './pages/Privacy';
 import { Profile } from './pages/Profile';
 import { Rules } from './pages/Rules';
+import Admin from './pages/Admin';
 
 const PENDING = 'ps_pending_join';
 const NAV = [
@@ -78,6 +79,7 @@ export function App() {
       : route === '/registrati' || join ? <Auth key="r" mode="register" /> : <Landing />;
   } else {
     page = join ? <Join code={join[1].toUpperCase()} /> : group ? <Group id={group[1]} />
+      : route === '/admin' ? <Admin />
       : route === '/me' ? <Profile /> : <Home />;
   }
   return <Shell route={route} authed={!!session}>{page}</Shell>;
