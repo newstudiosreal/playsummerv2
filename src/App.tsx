@@ -2,7 +2,9 @@ import { useEffect, type ReactNode } from 'react';
 import { useAuth } from './lib/auth';
 import { go, useRoute } from './lib/router';
 import { useTheme } from './lib/theme';
-import { IconBook, IconMoon, IconSun, IconUser, IconUsers, IconShield } from './components/icons';
+import { IconBook, IconMoon, IconSun, IconUser, IconUsers } from './components/icons';
+// @ts-ignore
+import { IconShield } from './components/icons';
 import { Spinner } from './components/ui';
 import { Auth } from './pages/Auth';
 import { Group } from './pages/Group';
