@@ -6,6 +6,7 @@ import {
   fetchAllEvents, adminDeleteEvent
 } from '../lib/admin-db';
 import { go } from '../lib/router';
+import { Button, Spinner } from '../components/ui';
 
 export default function AdminPage() {
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
@@ -66,7 +67,7 @@ export default function AdminPage() {
   };
 
   const handleDeleteGroup = async (id: string) => {
-    if (!confirm('Are you sure? This will delete the group and its events.')) return;
+    if (!confirm('Sei sicuro? Questo eliminerà il gruppo e tutti i suoi eventi.')) return;
     try {
       await adminDeleteGroup(id);
       setGroups(groups.filter(g => g.id !== id));
@@ -74,125 +75,94 @@ export default function AdminPage() {
   };
 
   const handleDeleteEvent = async (id: string) => {
-    if (!confirm('Delete this event?')) return;
+    if (!confirm('Eliminare questo evento?')) return;
     try {
       await adminDeleteEvent(id);
       setEvents(events.filter(e => e.id !== id));
     } catch (err) { alert('Error deleting event'); }
   };
 
-  if (isAdmin === null) return <div className="p-8 text-center">Loading...</div>;
+  if (isAdmin === null) return <div className="center-screen"><Spinner /></div>;
   if (isAdmin === false) return null;
 
   return (
-    <div className="p-4 max-w-4xl mx-auto">
-      <header className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Admin Panel</h1>
-        <button onClick={() => go('/')} className="text-sm bg-gray-200 px-3 py-1 rounded">Back to App</button>
+    <div className="stack">
+      <header className="stack" style={{ marginBottom: '2rem', alignItems: 'start' }}>
+        <h1 style={{ margin: 0 }}>Admin Panel</h1>
+        <Button variant="ghost" onClick={() => go('/')}>Torna all'App</Button>
       </header>
 
-      <nav className="flex gap-2 mb-6 border-b">
+      <nav className="actions" style={{ marginBottom: '2rem' }}>
         {(['users', 'groups', 'events'] as const).map(t => (
-          <button
+          <Button
             key={t}
+            variant={tab === t ? 'sun' : 'ghost'}
             onClick={() => setTab(t)}
-            className={`px-4 py-2 capitalize ${tab === t ? 'border-b-2 border-blue-500 font-bold' : 'text-gray-500'}`}
           >
-            {t}
-          </button>
+            {t === 'users' ? 'Utenti' : t === 'groups' ? 'Gruppi' : 'Eventi'}
+          </Button>
         ))}
       </nav>
 
-      {loading ? <div className="text-center p-4">Loading data...</div> : (
-        <div className="bg-white rounded-lg shadow overflow-hidden">
+      {loading ? <Spinner /> : (
+        <div className="stack">
           {tab === 'users' && (
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-gray-50 border-b">
-                  <th className="p-3">User</th>
-                  <th className="p-3">Status</th>
-                  <th className="p-3 text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {users.map(u => (
-                  <tr key={u.id} className="border-b">
-                    <td className="p-3">{u.username}</td>
-                    <td className="p-3">
-                      <span className={`text-xs px-2 py-1 rounded ${u.is_suspended ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
-                        {u.is_suspended ? 'Suspended' : 'Active'}
-                      </span>
-                    </td>
-                    <td className="p-3 text-right">
-                      <button
-                        onClick={() => handleSuspension(u.id, u.is_suspended)}
-                        className="text-xs bg-blue-500 text-white px-2 py-1 rounded"
-                      >
-                        {u.is_suspended ? 'Activate' : 'Suspend'}
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <div className="stack">
+              {users.map(u => (
+                <div key={u.id} className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div className="stack">
+                    <strong>{u.username}</strong>
+                    <span className="muted" style={{ fontSize: '0.8rem' }}>
+                      {u.is_suspended ? '🔴 Sospeso' : '🟢 Attivo'}
+                    </span>
+                  </div>
+                  <Button
+                    variant={u.is_suspended ? 'sun' : 'danger'}
+                    className="btn-sm"
+                    onClick={() => handleSuspension(u.id, u.is_suspended)}
+                  >
+                    {u.is_suspended ? 'Attiva' : 'Sospendi'}
+                  </Button>
+                </div>
+              ))}
+              {users.length === 0 && <p className="muted">Nessun utente trovato.</p>}
+            </div>
           )}
 
           {tab === 'groups' && (
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-gray-50 border-b">
-                  <th className="p-3">Group Name</th>
-                  <th className="p-3">Code</th>
-                  <th className="p-3 text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {groups.map(g => (
-                  <tr key={g.id} className="border-b">
-                    <td className="p-3 font-medium">{g.name}</td>
-                    <td className="p-3 text-gray-500">{g.code}</td>
-                    <td className="p-3 text-right">
-                      <button
-                        onClick={() => handleDeleteGroup(g.id)}
-                        className="text-xs bg-red-500 text-white px-2 py-1 rounded"
-                      >
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <div className="stack">
+              {groups.map(g => (
+                <div key={g.id} className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div className="stack">
+                    <strong>{g.name}</strong>
+                    <span className="muted" style={{ fontSize: '0.8rem' }}>Codice: {g.code}</span>
+                  </div>
+                  <Button variant="danger" className="btn-sm" onClick={() => handleDeleteGroup(g.id)}>
+                    Elimina
+                  </Button>
+                </div>
+              ))}
+              {groups.length === 0 && <p className="muted">Nessun gruppo trovato.</p>}
+            </div>
           )}
 
           {tab === 'events' && (
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-gray-50 border-b">
-                  <th className="p-3">Event</th>
-                  <th className="p-3">User</th>
-                  <th className="p-3">Pts</th>
-                  <th className="p-3 text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {events.map(e => (
-                  <tr key={e.id} className="border-b">
-                    <td className="p-3">{e.label}</td>
-                    <td className="p-3 text-gray-500">{e.user?.username || 'Unknown'}</td>
-                    <td className="p-3">{e.pts}</td>
-                    <td className="p-3 text-right">
-                      <button
-                        onClick={() => handleDeleteEvent(e.id)}
-                        className="text-xs bg-red-500 text-white px-2 py-1 rounded"
-                      >
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <div className="stack">
+              {events.map(e => (
+                <div key={e.id} className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div className="stack">
+                    <strong>{e.label}</strong>
+                    <span className="muted" style={{ fontSize: '0.8rem' }}>
+                      {e.user?.username || 'Sconosciuto'} · {e.pts} pts
+                    </span>
+                  </div>
+                  <Button variant="danger" className="btn-sm" onClick={() => handleDeleteEvent(e.id)}>
+                    Elimina
+                  </Button>
+                </div>
+              ))}
+              {events.length === 0 && <p className="muted">Nessun evento trovato.</p>}
+            </div>
           )}
         </div>
       )}
